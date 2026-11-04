@@ -2,11 +2,18 @@
 FROM eclipse-temurin:17-jdk-alpine AS build
 WORKDIR /app
 
+# Copy Maven wrapper and pom.xml
 COPY mvnw .
 COPY .mvn .mvn
 COPY pom.xml .
+
+# FIX: Grant execution permission to the Maven wrapper
+RUN chmod +x mvnw
+
+# Resolve dependencies
 RUN ./mvnw dependency:go-offline -B
 
+# Copy source code and build the jar
 COPY src src
 RUN ./mvnw package -DskipTests
 
