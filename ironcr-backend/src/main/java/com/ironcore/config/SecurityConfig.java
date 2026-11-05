@@ -141,15 +141,16 @@ public class SecurityConfig {
 
         // Allow requests from frontend (adjust in production)
         configuration.setAllowedOrigins(Arrays.asList(
-            "http://localhost:5173",     // Vite dev server
-            "http://localhost:3000",     // React dev server
-            "http://localhost:8081",     // Alternative port
-            "http://127.0.0.1:5173",
-            "http://127.0.0.1:3000"
+                "http://localhost:5173",
+                "http://localhost:3000",
+                "http://localhost:8081",
+                "http://127.0.0.1:5173",
+                "http://127.0.0.1:3000",
+                "https://ironcore-bay.vercel.app"
         ));
 
         // Allow all HTTP methods
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT","PATCH", "DELETE", "OPTIONS"));
 
         // Allow all headers (including Authorization)
         configuration.setAllowedHeaders(Arrays.asList("*"));
