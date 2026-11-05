@@ -1,6 +1,6 @@
 // API Service Layer - Complete Backend Integration
 // Base URL for all API calls
-const API_BASE = "http://localhost:8080/api";
+const API_BASE = "https://gym-trial.onrender.com/api";
 
 // =====================================================
 // AUTHENTICATION & TOKEN MANAGEMENT
@@ -394,7 +394,7 @@ export const galleryApi = {
 };
 
 // =====================================================
-// TRIALS API (PUBLIC SUBMISSION)
+// TRIALS API (PUBLIC SUBMISSION + ADMIN VIEW)
 // =====================================================
 
 export const trialsApi = {
@@ -411,6 +411,47 @@ export const trialsApi = {
 
     if (!response.ok) throw new Error('Failed to book trial');
     return await response.json();
+  },
+
+  /**
+   * Get all trial requests (ADMIN ONLY)
+   * GET /api/trials
+   */
+  getAll: async () => {
+    const response = await fetch(`${API_BASE}/trials`, {
+      headers: getHeaders()
+    });
+
+    if (!response.ok) throw new Error('Failed to fetch trial requests');
+    return await response.json();
+  },
+
+  /**
+   * Update trial request status (ADMIN ONLY)
+   * PUT /api/trials/{id}/status?status={NEW|CONTACTED|CONFIRMED|REJECTED}
+   */
+  updateStatus: async (id, status) => {
+    const response = await fetch(`${API_BASE}/trials/${id}/status?status=${status}`, {
+      method: 'PUT',
+      headers: getHeaders()
+    });
+
+    if (!response.ok) throw new Error('Failed to update status');
+    return await response.json();
+  },
+
+  /**
+   * Delete trial request (ADMIN ONLY)
+   * DELETE /api/trials/{id}
+   */
+  delete: async (id) => {
+    const response = await fetch(`${API_BASE}/trials/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
+
+    if (!response.ok) throw new Error('Failed to delete trial request');
+    return true;
   }
 };
 

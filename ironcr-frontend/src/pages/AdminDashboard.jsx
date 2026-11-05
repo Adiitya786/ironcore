@@ -7,6 +7,7 @@ import {
   galleryApi,
   membershipApi,
   contactApi,
+  trialsApi,
   isAdmin,
   logout
 } from "../services/api";
@@ -25,6 +26,7 @@ export default function AdminDashboard() {
   const [gallery, setGallery] = useState([]);
   const [memberships, setMemberships] = useState([]);
   const [contacts, setContacts] = useState([]);
+  const [trials, setTrials] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Edit / Create modal states
@@ -45,13 +47,14 @@ export default function AdminDashboard() {
   const fetchAllData = async () => {
     try {
       setLoading(true);
-      const [pData, eData, tData, gData, mData, cData] = await Promise.all([
+      const [pData, eData, tData, gData, mData, cData, trData] = await Promise.all([
         programsApi.getAll().catch(() => []),
         equipmentApi.getAll().catch(() => []),
         trainersApi.getAll().catch(() => []),
         galleryApi.getAll().catch(() => []),
         membershipApi.getAll().catch(() => []),
-        contactApi.getAll().catch(() => [])
+        contactApi.getAll().catch(() => []),
+        trialsApi.getAll().catch(() => [])
       ]);
       setPrograms(pData);
       setEquipment(eData);
@@ -59,6 +62,7 @@ export default function AdminDashboard() {
       setGallery(gData);
       setMemberships(mData);
       setContacts(cData);
+      setTrials(trData);
     } catch (err) {
       console.error("Error loading admin data:", err);
     } finally {
@@ -81,6 +85,7 @@ export default function AdminDashboard() {
       else if (type === "gallery") await galleryApi.delete(id);
       else if (type === "memberships") await membershipApi.delete(id);
       else if (type === "contacts") await contactApi.delete(id);
+      else if (type === "trials") await trialsApi.delete(id);
 
       fetchAllData();
     } catch (err) {
@@ -163,6 +168,13 @@ export default function AdminDashboard() {
     } catch (err) { alert("Failed: " + err.message); }
   };
 
+  const updateTrialStatus = async (id, status) => {
+    try {
+      await trialsApi.updateStatus(id, status);
+      fetchAllData();
+    } catch (err) { alert("Failed: " + err.message); }
+  };
+
   if (loading) {
     return (
       <div style={{ padding: "100px 24px", textAlign: "center" }}>
@@ -237,7 +249,7 @@ export default function AdminDashboard() {
           <div className="admin-hero-inner">
             <div>
               <h1>Admin Management Dashboard</h1>
-              <p>Full CRUD control over programs, equipment, trainers, gallery, memberships, and contact messages.</p>
+              <p>Full CRUD control over programs, equipment, trainers, gallery, memberships, contacts, and trial requests.</p>
             </div>
             <button onClick={handleLogout} className="btn-action" style={{ background: "rgba(255,255,255,0.1)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)" }}>
               Logout
@@ -265,6 +277,9 @@ export default function AdminDashboard() {
             </button>
             <button className={`admin-tab${activeTab === "contacts" ? " active" : ""}`} onClick={() => setActiveTab("contacts")}>
               Contacts ({contacts.length})
+            </button>
+            <button className={`admin-tab${activeTab === "trials" ? " active" : ""}`} onClick={() => setActiveTab("trials")}>
+              Trials ({trials.length})
             </button>
           </div>
 
@@ -538,6 +553,67 @@ export default function AdminDashboard() {
                       </tr>
                     ))}
                     {contacts.length === 0 && <tr><td colSpan="6" style={{ textAlign: "center", padding: "24px" }}>No contact messages found.</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 7: TRIALS */}
+          {activeTab === "trials" && (
+            <div className="admin-card">
+              <div className="admin-header-row">
+                <h2>Trial Requests Management</h2>
+              </div>
+              <div className="admin-table-wrap">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Phone / Email</th>
+                      <th>Preferred Date</th>
+                      <th>Preferred Time</th>
+                      <th>Fitness Goal</th>
+                      <th>Experience Level</th>
+                      <th>Message</th>
+                      <th>Status</th>
+                      <th>Status Actions</th>
+                      <th>Delete</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {trials.length > 0 ? (
+                      trials.map(t => (
+                        <tr key={t.id}>
+                          <td><strong>{t.fullName}</strong></td>
+                          <td>{t.phone}<br/><span style={{ fontSize: "0.8rem", color: "#718096" }}>{t.email}</span></td>
+                          <td>{t.preferredDate}</td>
+                          <td>{t.preferredTime}</td>
+                          <td>{t.fitnessGoal}</td>
+                          <td>{t.experience}</td>
+                          <td>{t.message}</td>
+                          <td>
+                            <span style={{
+                              background: t.status === "CONFIRMED" ? "#c6f6d5" : t.status === "REJECTED" ? "#fed7d7" : t.status === "CONTACTED" ? "#feebc8" : "#feebc8",
+                              color: t.status === "CONFIRMED" ? "#22543d" : t.status === "REJECTED" ? "#742a2a" : "#744210",
+                              padding: "4px 10px", borderRadius: "4px", fontSize: "0.75rem", fontWeight: "700"
+                            }}>
+                              {t.status}
+                            </span>
+                          </td>
+                          <td>
+                            <button className="btn-action" onClick={() => updateTrialStatus(t.id, "CONFIRMED")}>Confirm</button>
+                            <button className="btn-action" onClick={() => updateTrialStatus(t.id, "REJECTED")}>Reject</button>
+                            <button className="btn-action" onClick={() => updateTrialStatus(t.id, "CONTACTED")}>Contacted</button>
+                          </td>
+                          <td>
+                            <button className="btn-action delete" onClick={() => handleDelete("trials", t.id)}>Delete</button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr><td colSpan="10" style={{ textAlign: "center", padding: "24px" }}>No trial requests found.</td></tr>
+                    )}
                   </tbody>
                 </table>
               </div>
